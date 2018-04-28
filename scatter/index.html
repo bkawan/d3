@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Interactive Time line</title>
+    <!--<script src="https://d3js.org/d3.v4.min.js"></script>-->
+    <script src="../lib/d3.v4.js"></script>
+    <style>
+        html, body {
+            margin: 0;
+            height: 100%;
+        }
+
+        path {
+            fill: none;
+            stroke: green;
+            stroke-width: 2px;
+        }
+    </style>
+</head>
+
+
+<body>
+<div class="chart"></div>
+
+
+<script>
+
+
+    var parseDate = d3.timeParse("%Y");
+    d3.json('../data/year_value.json', function (err, data) {
+
+        data.forEach(function (d) {
+            d["date"] = parseDate(d['date'])
+        });
+
+
+        var height = 300;
+        var width = 800;
+
+        var maxScans = d3.max(data, function (d) {
+            return d["value"]
+        });
+
+
+        var maxTimeStamp = d3.max(data, function (d) {
+            return d["date"]
+        });
+        var minTimeStamp = d3.min(data, function (d) {
+            return d["date"]
+        });
+        console.log(maxTimeStamp);
+        console.log(minTimeStamp);
+
+
+        var y = d3.scaleLinear()
+            .domain([0, maxScans])
+            .range([height, 0]);
+
+        var x = d3.scaleTime()
+            .domain([minTimeStamp, maxTimeStamp])
+            .range([0, width]);
+
+        var yAxis = d3.axisLeft(y).ticks(20);
+        var xAxis = d3.axisBottom(x);
+
+
+        var svg = d3.select('body').append('svg').attr('height', '100%').attr('width', '100%');
+        var margin = {left: 50, right: 50, top: 40, bottom: 0}
+
+
+        var chartGroup = svg.append('g')
+            .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+        var line = d3.line()
+            .x(function (d) {
+                return x(d['date'])
+            })
+            .y(function (d) {
+                return y(d['value'])
+            });
+
+
+        // Add the scatterplot
+        chartGroup.selectAll("dot")
+            .data(data)
+            .enter().append("circle")
+            .attr("r", 3.5)
+            .attr("cx", function (d) {
+                return x(d.date);
+            })
+            .attr("cy", function (d) {
+                return y(d.value);
+            });
+        chartGroup.append('path').attr('d', line(data));
+        chartGroup.append('g').attr('class', 'x axis').attr('transform', 'translate(0,' + height + ')').call(xAxis);
+        chartGroup.append('g').attr('class', 'y axis').call(yAxis);
+
+    });
+
+
+</script>
+</body>
+</html>

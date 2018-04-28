@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Interactive Time line</title>
+    <!--<script src="https://d3js.org/d3.v4.min.js"></script>-->
+    <script src="../../../lib/d3.v4.js"></script>
+    <style>
+        html, body {
+            margin: 0;
+            height: 100%;
+        }
+    </style>
+</head>
+
+
+<body>
+<div class="chart"></div>
+
+
+<script>
+
+
+    d3.json('../../../data/Rilke_metadata3.json', function (err, data) {
+        console.log(data)
+
+    });
+
+
+</script>
+</body>
+</html>
