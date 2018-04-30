@@ -16,6 +16,16 @@
             stroke: green;
             stroke-width: 2px;
         }
+
+        .scatter-detail {
+            background-color: cadetblue;
+            padding: 3px;
+        }
+
+        .scatter-detail p {
+            padding: 1px;
+            margin: 1px;
+        }
     </style>
 </head>
 
@@ -26,6 +36,13 @@
 
 <script>
 
+
+    //    To display information about the scatters on hover using tool tip
+    var tooltip = d3.select('body')
+        .append('div')
+        .style('opacity', "0")
+        .style("position", 'absolute')
+        .attr('class', 'scatter-detail');
 
     d3.json('../data/Rilke_metadata3.json', function (err, data) {
         data.forEach(function (d) {
@@ -71,12 +88,30 @@
         chartGroup.selectAll("dot")
             .data(data)
             .enter().append("circle")
-            .attr("r", 3.5)
+            .on("mousemove", function (d, i) {
+//                Since we declare tooltip absolute only lef and top are available for positioning
+                tooltip.style("opacity", "1")
+                    .style("left", d3.event.pageX + "px")
+                    .style("top", d3.event.pageY + "px");
+                tooltip.html("" +
+                    "<p>Recipient: <span>" + d['Recipient'] + "</span></p>\
+                    <p>Date: <span>" + d['Date of origin'] + "</span></p>\
+                    <p>Detail Link: <span><a target='_blank' href='" + d['URL_Dataset'] + "'>click here</a></span></p>"
+                );
+                this.style.fill = 'red';
+
+            })
+            .on("mouseout", function (d, i) {
+
+                this.style.fill = "";
+
+            })
+            .attr("r", 5.5)
             .attr("cx", function (d) {
-                return x(d['Date of origin']);
+                return x(d['Date of origin'])
             })
             .attr("cy", function (d) {
-                return y(d['Number of Scans']);
+                return y(d['Number of Scans'])
             });
         chartGroup.append('g').attr('class', 'x axis').attr('transform', 'translate(0,' + height + ')').call(xAxis);
         chartGroup.append('g').attr('class', 'y axis').call(yAxis);
