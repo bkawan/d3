@@ -46,7 +46,8 @@
 
     d3.json('../data/Rilke_metadata3.json', function (err, data) {
         data.forEach(function (d) {
-            d["Date of origin"] = d['Date of origin'].replace("exakt:", '').trim()
+            let rawDate = d['Date of origin'].replace("exakt:", '').trim();
+            d["Date of origin"] = new Date(rawDate.slice(0, 4)).getTime() //Extract only year
         });
 
 
@@ -89,13 +90,15 @@
             .data(data)
             .enter().append("circle")
             .on("mousemove", function (d, i) {
+                let timeStamp = d["Date of origin"];
+                let date = new Date(timeStamp);
 //                Since we declare tooltip absolute only lef and top are available for positioning
                 tooltip.style("opacity", "1")
                     .style("left", d3.event.pageX + "px")
                     .style("top", d3.event.pageY + "px");
                 tooltip.html("" +
                     "<p>Recipient: <span>" + d['Recipient'] + "</span></p>\
-                    <p>Date: <span>" + d['Date of origin'] + "</span></p>\
+                    <p>Date: <span>" + date.getFullYear() + "</span></p>\
                     <p>Detail Link: <span><a target='_blank' href='" + d['URL_Dataset'] + "'>click here</a></span></p>"
                 );
                 this.style.fill = 'red';
