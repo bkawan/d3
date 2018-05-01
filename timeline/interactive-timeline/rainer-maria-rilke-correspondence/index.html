@@ -10,6 +10,22 @@
             margin: 0;
             height: 100%;
         }
+
+        path {
+            fill: none;
+            stroke: green;
+            stroke-width: 2px;
+        }
+
+        .scatter-detail {
+            background-color: cadetblue;
+            padding: 3px;
+        }
+
+        .scatter-detail p {
+            padding: 1px;
+            margin: 1px;
+        }
     </style>
 </head>
 
@@ -21,9 +37,115 @@
 <script>
 
 
-    d3.json('../../../data/Rilke_metadata3.json', function (err, data) {
-        console.log(data)
+    //    To display information about the scatters on hover using tool tip
+    var tooltip = d3.select('body')
+        .append('div')
+        .style('opacity', "0")
+        .style("position", 'absolute')
+        .attr('class', 'scatter-detail');
 
+    d3.json('../../../data/Rilke_metadata3.json', function (err, data) {
+        data.forEach(function (d) {
+            let rawDate = d['Date of origin'].replace("exakt:", '').trim();
+            d["Date of origin"] = new Date(rawDate.slice(0, 4)).getTime() //Extract only year
+        });
+
+
+        var height = 400;
+        var width = 800;
+
+        var maxScans = d3.max(data, function (d) {
+            return d["Number of Scans"]
+        });
+
+
+        var maxTimeStamp = d3.max(data, function (d) {
+            return d["Date of origin"]
+        });
+        var minTimeStamp = d3.min(data, function (d) {
+            return d["Date of origin"]
+        });
+
+
+        var y = d3.scaleLinear()
+            .domain([0, maxScans])
+            .range([height, 0]);
+
+        var x = d3.scaleTime()
+            .domain([minTimeStamp, maxTimeStamp])
+            .range([0, width]);
+
+        var yAxis = d3.axisLeft(y).ticks(20);
+        var xAxis = d3.axisBottom(x);
+
+
+        var svg = d3.select('body').append('svg').attr('height', '100%').attr('width', '100%');
+        var margin = {left: 50, right: 50, top: 40, bottom: 0};
+
+        var margin2 = {top: 500, right: 50, bottom: 20, left: 50};
+        var height2 = 80;
+        var y2 = d3.scaleLinear()
+            .domain([0, maxScans])
+            .range([height2, 0]);
+
+        var x2 = d3.scaleTime()
+            .domain([minTimeStamp, maxTimeStamp])
+            .range([0, width]);
+
+        var xAxis2 = d3.axisBottom(x2);
+
+
+        var chartGroup = svg.append('g')
+            .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+
+        var chartGroup2 = svg.append('g')
+            .attr('transform', 'translate(' + margin2.left + ',' + margin2.top + ')');
+
+        chartGroup2.selectAll('dot')
+            .data(data)
+            .enter().append('circle')
+            .attr('r', 2)
+            .attr("cx", function (d) {
+                return x2(d['Date of origin'])
+            })
+            .attr("cy", function (d) {
+                return y2(d['Number of Scans'])
+            });
+        chartGroup2.append('g').attr('class', 'x axis').attr('transform', 'translate(0,' + height2 + ')').call(xAxis2);
+
+        chartGroup.selectAll("dot")
+            .data(data)
+            .enter().append("circle")
+            .on("mouseover", function (d, i) {
+                let timeStamp = d["Date of origin"];
+                let date = new Date(timeStamp);
+//                Since we declare tooltip absolute only lef and top are available for positioning
+                tooltip.style("opacity", "1")
+                    .style("left", d3.event.pageX + "px")
+                    .style("top", d3.event.pageY + "px");
+                tooltip.html("" +
+                    "<p>Recipient: <span>" + d['Recipient'] + "</span></p>\
+                    <p>Date: <span>" + date.getFullYear() + "</span></p>\
+                    <p>Detail Link: <span><a target='_blank' href='" + d['URL_Dataset'] + "'>click here</a></span></p>"
+                );
+                this.style.fill = 'red';
+
+            })
+            .on("mouseout", function (d, i) {
+                this.style.fill = "";
+                tooltip.style("opacity", "0")
+
+            })
+            .attr("r", 5.5)
+            .attr("cx", function (d) {
+                return x(d['Date of origin'])
+            })
+            .attr("cy", function (d) {
+                return y(d['Number of Scans'])
+            });
+        chartGroup.append('g').attr('class', 'x axis').attr('transform', 'translate(0,' + height + ')').call(xAxis);
+        chartGroup.append('g').attr('class', 'y axis').call(yAxis);
     });
 
 
