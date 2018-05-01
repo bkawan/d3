@@ -16,16 +16,13 @@
             stroke: green;
             stroke-width: 2px;
         }
-        circle{
-            stroke: red;
-            padding: 10px;
-        }
 
         .scatter-detail {
             background-color: cadetblue;
             padding: 3px;
         }
-        .circle{
+
+        .circle {
             margin: 5px;
             padding: 5px;
         }
@@ -100,7 +97,7 @@
             .domain([minTimeStamp, maxTimeStamp])
             .range([0, width]);
 
-        var brush = d3.brush()
+        var brush = d3.brushX()
             .extent([[0, 0], [width, height2]])
             .on("brush", brushed);
 
@@ -154,7 +151,6 @@
             })
             .on("mouseout", function (d, i) {
                 this.style.fill = "";
-                tooltip.style("opacity", "0")
 
             })
             .attr("r", 5.5)
@@ -167,13 +163,14 @@
             });
         chartGroup.append('g').attr('class', 'x axis').attr('transform', 'translate(0,' + height + ')').call(xAxis);
         chartGroup.append('g').attr('class', 'y axis').call(yAxis);
-    });
 
-    function brushed() {
-        x.domain(brush.empty() ? x2.domain() : brush.extent());
-        chartGroup2.select(".area").attr("g", area);
-        chartGroup2.select(".x.axis").call(xAxis);
-    }
+
+        function brushed() {
+            x.domain(brush.empty() ? x2.domain() : brush.extent());
+            chartGroup.select(".circle").attr("g", area);
+            chartGroup.select(".x.axis").call(xAxis);
+        }
+    });
 
 
 </script>
