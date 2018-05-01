@@ -16,10 +16,18 @@
             stroke: green;
             stroke-width: 2px;
         }
+        circle{
+            stroke: red;
+            padding: 10px;
+        }
 
         .scatter-detail {
             background-color: cadetblue;
             padding: 3px;
+        }
+        .circle{
+            margin: 5px;
+            padding: 5px;
         }
 
         .scatter-detail p {
@@ -92,8 +100,11 @@
             .domain([minTimeStamp, maxTimeStamp])
             .range([0, width]);
 
-        var xAxis2 = d3.axisBottom(x2);
+        var brush = d3.brush()
+            .extent([[0, 0], [width, height2]])
+            .on("brush", brushed);
 
+        var xAxis2 = d3.axisBottom(x2);
 
         var chartGroup = svg.append('g')
             .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
@@ -112,11 +123,20 @@
             .attr("cy", function (d) {
                 return y2(d['Number of Scans'])
             });
-        chartGroup2.append('g').attr('class', 'x axis').attr('transform', 'translate(0,' + height2 + ')').call(xAxis2);
+        chartGroup2.append('g')
+            .attr('class', 'x axis')
+            .attr('transform', 'translate(0,' + height2 + ')')
+            .call(xAxis2);
+
+        chartGroup2.append('g')
+            .attr('class', 'x brush')
+            .call(brush);
+
 
         chartGroup.selectAll("dot")
             .data(data)
             .enter().append("circle")
+            .attr('class', 'circle')
             .on("mouseover", function (d, i) {
                 let timeStamp = d["Date of origin"];
                 let date = new Date(timeStamp);
@@ -139,6 +159,7 @@
             })
             .attr("r", 5.5)
             .attr("cx", function (d) {
+//                return x(d['Date of origin'])
                 return x(d['Date of origin'])
             })
             .attr("cy", function (d) {
@@ -147,6 +168,12 @@
         chartGroup.append('g').attr('class', 'x axis').attr('transform', 'translate(0,' + height + ')').call(xAxis);
         chartGroup.append('g').attr('class', 'y axis').call(yAxis);
     });
+
+    function brushed() {
+        x.domain(brush.empty() ? x2.domain() : brush.extent());
+        chartGroup2.select(".area").attr("g", area);
+        chartGroup2.select(".x.axis").call(xAxis);
+    }
 
 
 </script>
