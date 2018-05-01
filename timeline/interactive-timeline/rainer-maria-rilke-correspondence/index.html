@@ -47,7 +47,13 @@
         .append('div')
         .style('opacity', "0")
         .style("position", 'absolute')
-        .attr('class', 'scatter-detail');
+        .attr('class', 'scatter-detail')
+        .on('mouseout', function (d, i) {
+            tooltip.style('display', 'none')
+        })
+        .on('mouseover', function (d, i) {
+            tooltip.transition().duration(0);
+        });
 
     function formatDate(date) {
 
@@ -171,11 +177,15 @@
                     <p>Detail Link: <span><a target='_blank' href='" + d['URL_Dataset'] + "'>click here</a></span></p>"
                     );
                     this.style.fill = 'red';
+                    tooltip.transition().duration(0);
+                    tooltip.style('display', 'block');
 
                 })
-                .on("mouseout", function (d, i) {
-                    this.style.fill = "";
-
+                .on('mouseout', function (d, i) {
+                    this.style.fill = '';
+                    tooltip.transition()
+                        .delay(300)
+                        .style('display', 'none');
                 })
                 .attr("r", 3.5)
                 .attr("cx", function (d) {
