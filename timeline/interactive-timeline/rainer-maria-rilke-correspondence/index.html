@@ -49,12 +49,32 @@
         .style("position", 'absolute')
         .attr('class', 'scatter-detail');
 
-    d3.json('../../../data/Rilke_metadata3.json', function (err, data) {
-        data.forEach(function (d) {
-            let rawDate = d['Date of origin'].replace("exakt:", '').trim();
-            d["Date of origin"] = new Date(rawDate.slice(0, 4)).getTime() //Extract only year
+    function formatDate(date) {
+
+        const rawDate = date.split(' ')[1];
+        const parseDate = d3.timeParse('%Y%m%d');
+
+        return {parsed: parseDate(rawDate), unix: rawDate}
+    }
+
+    d3.json('../../../data/Rilke_metadata3.json', function (err, rawdata) {
+
+
+        const data = rawdata.map(rd => {
+            const parse = formatDate(rd['Date of origin']);
+            return {
+                ...rd, ['Date of origin']:
+                parse.parsed, unix:
+                    parseFloat(parse.unix)
+            }
+
         });
 
+        // data.forEach(function (d) {
+        //     formatDate(d['Date of origin'])
+        //     let rawDate = d['Date of origin'].replace("exakt:", '').trim();
+        //     d["Date of origin"] = new Date(rawDate.slice(0, 4)).getTime() //Extract only year
+        // });
 
         var height = 400;
         var width = 800;
@@ -63,19 +83,16 @@
             return d["Number of Scans"]
         });
 
+        const timeExtents = d3.extent(data, d => d['Date of origin']);
+        var maxTimeStamp = timeExtents[1];
 
-        var maxTimeStamp = d3.max(data, function (d) {
-            return d["Date of origin"]
-        });
-        var minTimeStamp = d3.min(data, function (d) {
-            return d["Date of origin"]
-        });
-
-
+        var minTimeStamp = timeExtents[0];
         var y = d3.scaleLinear()
             .domain([0, maxScans])
             .range([height, 0]);
 
+        const unixTime = d3.scaleLinear().domain(data, d => d.unix
+        ).range([0, width]);
         var x = d3.scaleTime()
             .domain([minTimeStamp, maxTimeStamp])
             .range([0, width]);
@@ -97,17 +114,18 @@
             .domain([minTimeStamp, maxTimeStamp])
             .range([0, width]);
 
+
         var brush = d3.brushX()
             .extent([[0, 0], [width, height2]])
             .on("brush", brushed);
 
         var xAxis2 = d3.axisBottom(x2);
 
-        var chartGroup = svg.append('g')
+        var chartGroup = svg.append('g').classed('chart1', true)
             .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 
-        var chartGroup2 = svg.append('g')
+        var chartGroup2 = svg.append('g').classed('chart2', true)
             .attr('transform', 'translate(' + margin2.left + ',' + margin2.top + ')');
 
         chartGroup2.selectAll('dot')
@@ -129,45 +147,57 @@
             .attr('class', 'x brush')
             .call(brush);
 
-
-        chartGroup.selectAll("dot")
-            .data(data)
-            .enter().append("circle")
-            .attr('class', 'circle')
-            .on("mouseover", function (d, i) {
-                let timeStamp = d["Date of origin"];
-                let date = new Date(timeStamp);
-//                Since we declare tooltip absolute only lef and top are available for positioning
-                tooltip.style("opacity", "1")
-                    .style("left", d3.event.pageX + "px")
-                    .style("top", d3.event.pageY + "px");
-                tooltip.html("" +
-                    "<p>Recipient: <span>" + d['Recipient'] + "</span></p>\
-                    <p>Date: <span>" + date.getFullYear() + "</span></p>\
-                    <p>Detail Link: <span><a target='_blank' href='" + d['URL_Dataset'] + "'>click here</a></span></p>"
-                );
-                this.style.fill = 'red';
-
-            })
-            .on("mouseout", function (d, i) {
-                this.style.fill = "";
-
-            })
-            .attr("r", 5.5)
-            .attr("cx", function (d) {
-//                return x(d['Date of origin'])
-                return x(d['Date of origin'])
-            })
-            .attr("cy", function (d) {
-                return y(d['Number of Scans'])
-            });
+        createCircles(data);
         chartGroup.append('g').attr('class', 'x axis').attr('transform', 'translate(0,' + height + ')').call(xAxis);
         chartGroup.append('g').attr('class', 'y axis').call(yAxis);
 
 
+        function createCircles(data) {
+            chartGroup.selectAll('circle').remove()
+            chartGroup.selectAll("dot")
+                .data(data)
+                .enter().append("circle")
+                .attr('class', 'circle')
+                .on("mouseover", function (d, i) {
+                    let timeStamp = d["Date of origin"];
+                    let date = new Date(timeStamp);
+//                Since we declare tooltip absolute only lef and top are available for positioning
+                    tooltip.style("opacity", "1")
+                        .style("left", d3.event.pageX + "px")
+                        .style("top", d3.event.pageY + "px");
+                    tooltip.html("" +
+                        "<p>Recipient: <span>" + d['Recipient'] + "</span></p>\
+                    <p>Date: <span>" + date.getFullYear() + "</span></p>\
+                    <p>Detail Link: <span><a target='_blank' href='" + d['URL_Dataset'] + "'>click here</a></span></p>"
+                    );
+                    this.style.fill = 'red';
+
+                })
+                .on("mouseout", function (d, i) {
+                    this.style.fill = "";
+
+                })
+                .attr("r", 3.5)
+                .attr("cx", function (d) {
+                    return x(d['Date of origin'])
+                })
+                .attr("cy", function (d) {
+                    return y(d['Number of Scans'])
+                });
+
+        }
+
         function brushed() {
-            x.domain(brush.empty() ? x2.domain() : brush.extent());
-            chartGroup.select(".circle").attr("g", area);
+            if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
+            const extents = d3.event.selection.map(x2.invert);
+            x.domain(extents);
+            const filtered = data.filter(d => {
+
+                return d['Date of origin'] >= extents[0] && d['Date of origin'] <= extents[1];
+
+            });
+
+            createCircles(filtered);
             chartGroup.select(".x.axis").call(xAxis);
         }
     });
