@@ -52,9 +52,9 @@
         .style('opacity', "0")
         .style("position", 'absolute')
         .attr('class', 'scatter-detail')
-        .on('mouseout', function (d, i) {
-            tooltip.style('display', 'none')
-        })
+        //        .on('mouseout', function (d, i) {
+        //            tooltip.style('display', 'none')
+        //        })
         .on('mouseover', function (d, i) {
             tooltip.transition().duration(0);
         });
@@ -111,7 +111,10 @@
         var xAxis = d3.axisBottom(x);
 
 
-        var svg = d3.select('body').append('svg').attr('height', '100%').attr('width', '100%');
+        var svg = d3.select('body').append('svg').attr('height', '100%').attr('width', '100%').on('click', function () {
+            tooltip.style('display', 'none')
+
+        });
         var margin = {left: 50, right: 50, top: 40, bottom: 0};
 
         var margin2 = {top: 500, right: 50, bottom: 20, left: 50};
@@ -187,9 +190,9 @@
                 })
                 .on('mouseout', function (d, i) {
                     this.style.fill = '';
-                    tooltip.transition()
-                        .delay(300)
-                        .style('display', 'none');
+                    //                    tooltip.transition()
+                    //                        .delay(300)
+                    //                        .style('display', 'none');
                 })
                 .attr("r", 3.5)
                 .attr("cx", function (d) {
