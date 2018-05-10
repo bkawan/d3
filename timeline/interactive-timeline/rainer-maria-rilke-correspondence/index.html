@@ -177,7 +177,7 @@
                         .style("top", d3.event.pageY + "px");
                     tooltip.html("" +
                         "<p>Recipient: <span>" + d['Recipient'] + "</span></p>\
-                    <p>Date: <span>" + date.getFullYear() + "</span></p>\
+                    <p>Date: <span>" + d['unix'] + "</span></p>\
                     <p>Detail Link: <span><a target='_blank' href='" + d['URL_Dataset'] + "'>click here</a></span></p>"
                     );
                     this.style.fill = 'red';
