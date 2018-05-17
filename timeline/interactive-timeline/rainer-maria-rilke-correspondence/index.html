@@ -38,7 +38,7 @@
 <body>
 
 <div>
-    <h1 style="padding-left: 150px">Rilke's letters 1898 - 1926</h1>
+    <h1 style="padding-left: 180px">Rilke's letters 1898 - 1926</h1>
 </div>
 <div class="chart"></div>
 
@@ -115,9 +115,9 @@
             tooltip.style('display', 'none')
 
         });
-        var margin = {left: 50, right: 50, top: 40, bottom: 0};
+        var margin = {left: 80, right: 50, top: 40, bottom: 0};
 
-        var margin2 = {top: 500, right: 50, bottom: 20, left: 50};
+        var margin2 = {top: 500, right: 50, bottom: 20, left: 80};
         var height2 = 80;
         var y2 = d3.scaleLinear()
             .domain([0, maxScans])
@@ -163,6 +163,14 @@
         createCircles(data);
         chartGroup.append('g').attr('class', 'x axis').attr('transform', 'translate(0,' + height + ')').call(xAxis);
         chartGroup.append('g').attr('class', 'y axis').call(yAxis);
+        // text label for the y axis
+        chartGroup.append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 20 - margin.left)
+            .attr("x", 0 - (height / 2))
+            .attr("dy", "1em")
+            .style("text-anchor", "middle")
+            .text("Number of pages per letter");
 
 
         function createCircles(data) {
